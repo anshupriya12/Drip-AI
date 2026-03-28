@@ -14,6 +14,8 @@ from pathlib import Path
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+load_dotenv()
 
 # -------------------------------------------------------
 # MongoDB Connection
