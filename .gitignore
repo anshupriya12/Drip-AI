@@ -1,0 +1,24 @@
+SimSun.ttf
+*.pyc
+run_app.bat
+
+# Large folders - don't upload
+.git
+Closet/
+Closet_Images/
+data/
+Images/
+venv/
+
+# Image files
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+
+# Python cache
+__pycache__/
+
+# Environment files
+.env
