@@ -17,12 +17,6 @@ pinned: false
 
 ---
 
-## 🌐 Live Demo
-
-> **[→ Live on Hugging Face ←](https://huggingface.co/spaces/anshupriya12/fitcheck-ai)**
-
----
-
 ## ✨ What Makes This Different
 
 Every other fashion AI recommends outfits generically.
