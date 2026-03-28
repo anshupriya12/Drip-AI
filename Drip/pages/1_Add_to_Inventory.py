@@ -707,6 +707,8 @@ from pymongo.server_api import ServerApi
 from datetime import datetime, timezone
 import sys
 import certifi
+from dotenv import load_dotenv
+load_dotenv()
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from tagging import tag_closet_item
@@ -772,7 +774,7 @@ st.markdown("""
 # -------------------------------------------------------
 # MongoDB
 # -------------------------------------------------------
-MONGO_URI = "mongodb+srv://fitcheck:fitcheck123@cluster0.ozebcow.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+MONGO_URI = os.environ.get("MONGO_URI")
 
 @st.cache_resource
 def get_db():

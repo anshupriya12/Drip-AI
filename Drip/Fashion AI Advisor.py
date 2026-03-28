@@ -23,7 +23,7 @@
 # # # Page Config
 # # # -------------------------------------------------------
 # # st.set_page_config(
-# #     page_title="FitCheck.AI — Women's Stylist",
+# #     page_title="Drip.AI — Women's Stylist",
 # #     page_icon="👗",
 # #     layout="centered"
 # # )
@@ -112,7 +112,7 @@
 # # # -------------------------------------------------------
 # # # MongoDB
 # # # -------------------------------------------------------
-# # MONGO_URI = "mongodb+srv://fitcheck:fitcheck123@cluster0.ozebcow.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+# # MONGO_URI = "mongodb+srv://Drip.AI:Drip.AI123@cluster0.ozebcow.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 # # @st.cache_resource
 # # def get_mongo_client():
@@ -125,7 +125,7 @@
 # # # -------------------------------------------------------
 # # # Header
 # # # -------------------------------------------------------
-# # st.markdown('<p class="main-title">👗 FitCheck.AI</p>', unsafe_allow_html=True)
+# # st.markdown('<p class="main-title">👗 Drip.AI</p>', unsafe_allow_html=True)
 # # st.markdown('<p class="subtitle">Your personal women\'s fashion critic — honest, savage, and always stylish.</p>', unsafe_allow_html=True)
 
 # # # -------------------------------------------------------
@@ -287,7 +287,7 @@
 # import os
 
 # st.set_page_config(
-#     page_title="FitCheck.AI — Women's Stylist",
+#     page_title="Drip.AI — Women's Stylist",
 #     page_icon="👗",
 #     layout="centered"
 # )
@@ -550,7 +550,7 @@
 # # -------------------------------------------------------
 # # MongoDB
 # # -------------------------------------------------------
-# MONGO_URI = "mongodb+srv://fitcheck:fitcheck123@cluster0.ozebcow.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+# MONGO_URI = "mongodb+srv://Drip.AI:Drip.AI123@cluster0.ozebcow.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 # @st.cache_resource
 # def get_mongo_client():
@@ -566,7 +566,7 @@
 # st.markdown("""
 # <div class="masthead">
 #     <div class="masthead-kicker">AI · Fashion · Critique</div>
-#     <h1 class="masthead-title">Fit<em>Check</em></h1>
+#     <h1 class="masthead-title">Drip<em>.AI</em></h1>
 #     <div class="masthead-sub">Your personal women's fashion critic — honest, savage, always stylish</div>
 # </div>
 # """, unsafe_allow_html=True)
@@ -726,9 +726,11 @@ from datetime import datetime, timezone
 import os
 import certifi
 from pymongo.server_api import ServerApi
+from dotenv import load_dotenv
+load_dotenv()
 
 st.set_page_config(
-    page_title="FitCheck.AI — Women's Stylist",
+    page_title="Drip.AI — Women's Stylist",
     page_icon="👗",
     layout="centered"
 )
@@ -976,7 +978,7 @@ st.markdown("""
 # -------------------------------------------------------
 # MongoDB
 # -------------------------------------------------------
-MONGO_URI = "mongodb+srv://fitcheck:fitcheck123@cluster0.ozebcow.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+MONGO_URI = os.environ.get("MONGO_URI")
 
 @st.cache_resource
 def get_mongo_client():
@@ -998,7 +1000,7 @@ collection = db["outfit_critiques"]
 st.markdown("""
 <div class="masthead">
     <div class="masthead-kicker">AI · Fashion · Critique</div>
-    <h1 class="masthead-title">Fit<em>Check</em></h1>
+    <h1 class="masthead-title">Drip<em>.AI</em></h1>
     <div class="masthead-sub">Your personal women's fashion critic — honest, savage, always stylish</div>
 </div>
 """, unsafe_allow_html=True)

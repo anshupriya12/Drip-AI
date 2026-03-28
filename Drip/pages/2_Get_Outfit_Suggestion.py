@@ -363,7 +363,7 @@
 # # -------------------------------------------------------
 # # MongoDB
 # # -------------------------------------------------------
-# MONGO_URI = "mongodb+srv://fitcheck:fitcheck123@cluster0.ozebcow.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+# MONGO_URI = os.environ.get("MONGO_URI")
 
 # @st.cache_resource
 # def get_db():
@@ -772,7 +772,7 @@
 # # -------------------------------------------------------
 # # MongoDB
 # # -------------------------------------------------------
-# MONGO_URI = "mongodb+srv://fitcheck:fitcheck123@cluster0.ozebcow.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+# MONGO_URI = os.environ.get("MONGO_URI")
 
 # @st.cache_resource
 # def get_db():
@@ -1363,7 +1363,7 @@ st.markdown("""
 # -------------------------------------------------------
 # MongoDB
 # -------------------------------------------------------
-MONGO_URI = "mongodb+srv://fitcheck:fitcheck123@cluster0.ozebcow.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+MONGO_URI = os.environ.get("MONGO_URI")
 
 @st.cache_resource
 def get_db():
