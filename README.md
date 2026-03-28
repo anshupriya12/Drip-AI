@@ -5,6 +5,14 @@
 
 ---
 
+## 🎬 Demo
+
+[![Drip.AI Demo](https://img.youtube.com/vi/_hY9Hhaz1l8/0.jpg)](https://www.youtube.com/watch?v=_hY9Hhaz1l8)
+
+> Click the thumbnail above to watch the full demo.
+
+---
+
 ## ✨ What Makes This Different
 
 Every other fashion AI recommends outfits generically.
