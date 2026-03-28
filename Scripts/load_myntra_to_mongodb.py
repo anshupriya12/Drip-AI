@@ -26,11 +26,13 @@ from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime, timezone
 from collections import Counter
+from dotenv import load_dotenv
+load_dotenv()
 
 # -------------------------------------------------------
 # Config
 # -------------------------------------------------------
-MONGO_URI = "mongodb+srv://fitcheck:fitcheck123@cluster0.ozebcow.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+MONGO_URI = os.environ.get("MONGO_URI")
 DATASET_DIR = Path("data/myntra")
 DATASET_DIR.mkdir(parents=True, exist_ok=True)
 
