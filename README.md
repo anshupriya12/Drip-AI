@@ -1,15 +1,3 @@
----
-title: Drip AI
-emoji: 👗
-colorFrom: blue
-colorTo: purple
-sdk: streamlit
-sdk_version: "1.41.0"
-app_file: Drip/Fashion AI Advisor.py
-app_port: 8501
-pinned: false
----
-
 # Drip.AI — *Where Gen-Z Streetwear, Millennial Minimalism & Aesthetic Romance Meet AI*
 
 > **The only women's AI fashion stylist that understands your style persona.**
