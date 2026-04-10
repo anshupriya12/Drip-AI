@@ -113,7 +113,6 @@ Drip.AI/
 | **Database** | MongoDB Atlas | Wardrobe inventory + outfit critiques |
 | **Product Catalog** | Myntra Kaggle Dataset | ~9,000 real women's products |
 | **Backend** | Streamlit | Python web framework |
-| **Deployment** | Hugging Face Spaces | Free cloud hosting |
 
 ---
 
