@@ -14,34 +14,33 @@ Setup:
     2. Get Kaggle API key:
        - Go to kaggle.com → Account → Create API Token
        - Download kaggle.json
-       - Place it at: C:\Users\Asus\.kaggle\kaggle.json
+       - Place it at: ~/.kaggle/kaggle.json
     3. Run: python Scripts/load_myntra_to_mongodb.py
 """
 
-import os
-import json
+import sys
 import pandas as pd
 from pathlib import Path
-from pymongo import MongoClient
-from pymongo.server_api import ServerApi
 from datetime import datetime, timezone
 from collections import Counter
-from dotenv import load_dotenv
-load_dotenv()
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "Drip"))
+from db import MissingConfigError, get_collection
 
 # -------------------------------------------------------
 # Config
 # -------------------------------------------------------
-MONGO_URI = os.environ.get("MONGO_URI")
 DATASET_DIR = Path("data/myntra")
 DATASET_DIR.mkdir(parents=True, exist_ok=True)
 
 # -------------------------------------------------------
 # MongoDB Setup
 # -------------------------------------------------------
-client = MongoClient(MONGO_URI, server_api=ServerApi('1'))
-db = client["fitcheck_women"]
-collection = db["wardrobe_inventory"]
+try:
+    collection = get_collection("wardrobe_inventory")
+except MissingConfigError as e:
+    sys.exit(str(e))
+client = collection.database.client
 
 # -------------------------------------------------------
 # Your 12 Category Mappings

@@ -6,31 +6,38 @@ Uses Qwen2.5-VL to analyze women's outfits with style persona detection.
 import os
 import re
 import gc
-import torch
-from PIL import Image
-from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
-from langchain.tools import tool
+from functools import lru_cache
 
-os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+from PIL import Image
+from langchain_core.tools import tool
+
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 # -------------------------------------------------------
-# Model Setup
+# Model Setup (loaded lazily on first use, then cached)
 # -------------------------------------------------------
 model_id = "Qwen/Qwen2.5-VL-3B-Instruct"
 
-processor = AutoProcessor.from_pretrained(
-    model_id,
-    min_pixels=256*28*28,
-    max_pixels=512*28*28
-)
-
-model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-    model_id,
-    torch_dtype=torch.float32,
-    device_map="cpu"
-)
-
 IMAGE_DIR = "Images"
+
+
+@lru_cache(maxsize=1)
+def load_model():
+    """Load Qwen2.5-VL-3B-Instruct once per process (CPU, float32)."""
+    import torch
+    from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+
+    processor = AutoProcessor.from_pretrained(
+        model_id,
+        min_pixels=256*28*28,
+        max_pixels=512*28*28
+    )
+    model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+        model_id,
+        torch_dtype=torch.float32,
+        device_map="cpu"
+    )
+    return processor, model
 
 # -------------------------------------------------------
 # Women's Fashion Prompt (with Style Persona)
@@ -62,8 +69,8 @@ FASHION_PROMPT = (
 # -------------------------------------------------------
 
 def get_image(image_name: str) -> Image.Image:
-    """Load image from Images/ folder."""
-    image_path = os.path.join(IMAGE_DIR, image_name)
+    """Load image from Images/ folder (bare filenames only — no path components)."""
+    image_path = os.path.join(IMAGE_DIR, os.path.basename(image_name))
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image not found: {image_path}")
     return Image.open(image_path).convert("RGB")
@@ -120,6 +127,9 @@ def analyze_outfit(image_name: str) -> str:
     Run Qwen2.5-VL on a women's outfit image.
     Returns structured critique with Style, Rating, Comment, Persona.
     """
+    import torch
+
+    processor, model = load_model()
     gc.collect()
     torch.cuda.empty_cache()
 

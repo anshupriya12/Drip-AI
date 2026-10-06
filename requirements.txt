@@ -1,14 +1,18 @@
-torch
-transformers>=4.52.0
-Pillow
-langchain
-imagehash
-pymongo[srv]>=4.6.0
+# --- App (Streamlit) ---
 streamlit
+torch
 torchvision
+transformers>=4.52.0
 accelerate
-modelscope
-qwen-vl-utils[decord]==0.0.8
-dnspython
-tenacity
+Pillow
+imagehash
+numpy
+pymongo[srv]>=4.6.0
 certifi
+python-dotenv
+langchain-core
+
+# --- Data-loading scripts (Scripts/) ---
+pandas
+requests
+kaggle

@@ -9,22 +9,21 @@ Usage:
 """
 
 import json
-import os
+import sys
 from pathlib import Path
-from pymongo import MongoClient
-from pymongo.server_api import ServerApi
 from datetime import datetime, timezone
-from dotenv import load_dotenv
-load_dotenv()
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "Drip"))
+from db import MissingConfigError, get_collection
 
 # -------------------------------------------------------
 # MongoDB Connection
 # -------------------------------------------------------
-MONGO_URI = os.environ.get("MONGO_URI")
-
-client = MongoClient(MONGO_URI, server_api=ServerApi('1'))
-db = client["fitcheck_women"]
-collection = db["wardrobe_inventory"]
+try:
+    collection = get_collection("wardrobe_inventory")
+except MissingConfigError as e:
+    sys.exit(str(e))
+client = collection.database.client
 
 # -------------------------------------------------------
 # Config

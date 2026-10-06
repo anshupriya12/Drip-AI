@@ -9,7 +9,6 @@ Usage:
     python Scripts/bulk_tag_images.py
 """
 
-import os
 import sys
 import json
 import torch

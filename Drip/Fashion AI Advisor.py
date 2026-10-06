@@ -4,10 +4,15 @@ Authentic luxury editorial fashion aesthetic.
 Outfit critique + style persona detection.
 """
 
-from PIL import Image
-import io
+import os
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+
 import imagehash
 import streamlit as st
+from PIL import Image
+
 from analyze_outfit import (
     analyze_outfit_tool,
     extract_comment,
@@ -15,14 +20,7 @@ from analyze_outfit import (
     extract_style_paragraph,
     extract_persona,
 )
-import dns
-from pymongo import MongoClient
-from datetime import datetime, timezone
-import os
-import certifi
-from pymongo.server_api import ServerApi
-from dotenv import load_dotenv
-load_dotenv()
+from db import MissingConfigError, get_collection
 
 st.set_page_config(
     page_title="Drip.AI — Women's Stylist",
@@ -273,21 +271,16 @@ st.markdown("""
 # -------------------------------------------------------
 # MongoDB
 # -------------------------------------------------------
-MONGO_URI = os.environ.get("MONGO_URI")
-
 @st.cache_resource
-def get_mongo_client():
-    return MongoClient(
-        MONGO_URI,
-        server_api=ServerApi('1'),
-        tls=True,
-        tlsCAFile=certifi.where(),
-        tlsAllowInvalidCertificates=True
-    )
+def get_critiques_collection():
+    return get_collection("outfit_critiques")
 
-client = get_mongo_client()
-db = client["fitcheck_women"]
-collection = db["outfit_critiques"]
+
+try:
+    collection = get_critiques_collection()
+except MissingConfigError as e:
+    st.error(str(e))
+    st.stop()
 
 # -------------------------------------------------------
 # Masthead
@@ -352,7 +345,9 @@ if uploaded_file:
         analyze_btn = st.button("Analyse My Outfit")
 
     if analyze_btn:
-        temp_path = os.path.join("Images", uploaded_file.name)
+        # Never build a filesystem path from the client-supplied filename.
+        temp_name = f"{uuid.uuid4().hex}{Path(uploaded_file.name).suffix.lower()}"
+        temp_path = os.path.join("Images", temp_name)
         os.makedirs("Images", exist_ok=True)
         with open(temp_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
@@ -366,7 +361,7 @@ if uploaded_file:
         else:
             with st.spinner("Critiquing your outfit... (30–60 seconds)"):
                 try:
-                    critique = analyze_outfit_tool.invoke({"image_name": uploaded_file.name})
+                    critique = analyze_outfit_tool.invoke({"image_name": temp_name})
                     collection.insert_one({
                         "image_id": phash,
                         "filename": uploaded_file.name,

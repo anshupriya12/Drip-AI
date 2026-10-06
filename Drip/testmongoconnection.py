@@ -1,11 +1,11 @@
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
-uri = os.environ.get("MONGO_URI")
-# Create a new client and connect to the server
-client = MongoClient(uri, server_api=ServerApi('1'))
-# Send a ping to confirm a successful connection
+"""Quick connectivity check: python Drip/testmongoconnection.py  (needs MONGO_URI)."""
+from db import MissingConfigError, get_client
+
 try:
-    client.admin.command('ping')
+    client = get_client()
+    client.admin.command("ping")
     print("Pinged your deployment. You successfully connected to MongoDB!")
-except Exception as e:
+except MissingConfigError as e:
     print(e)
+except Exception as e:
+    print(f"Connection failed: {e}")
