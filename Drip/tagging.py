@@ -1,139 +1,30 @@
-# import os
-# import json
-# from PIL import Image
-# import imagehash
-# import torch
-# from transformers import CLIPProcessor, CLIPModel
-
-# # -------------------------------------------------------
-# # Device setup (use GPU if available, otherwise CPU)
-# # -------------------------------------------------------
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# # -------------------------------------------------------
-# # Load CLIP model & processor
-# # -------------------------------------------------------
-# # CLIP can compare text labels with image embeddings.
-# # Here we use the pretrained "ViT-B/32" variant.
-# processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-# model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
-
-# # -------------------------------------------------------
-# # Label sets for classification
-# # -------------------------------------------------------
-# # Each list contains candidate labels for one category.
-# # CLIP encodes both the image and each text label into the
-# # same embedding space. It then compares them using cosine 
-# # similarity (returned as logits_per_image). 
-# # The label with the highest similarity score is selected.
-# ITEM_LABELS = [
-#     "sunglasses", "hats", "jackets", "shirts", "pants", "shorts",
-#     "skirts", "dresses", "bags", "shoes"
-# ]
-
-
-# COLOR_LABELS = [
-#     "black", "white", "grey", "gray", "blue", "red", "green", "yellow", "brown", "beige",
-#     "orange", "purple", "pink", "navy", "gold", "silver"
-# ]
-
-# LOCATION_LABELS = ["Indoor", "Outdoor"]
-# FORMALITY_LABELS = ["Formal", "Casual"]
-# GENDER_LABELS = ["Men's", "Women's", "Unisex"]
-
-
-# # -------------------------------------------------------
-# # Helper function: classify
-# # -------------------------------------------------------
-# def classify(image, labels):
-#     """
-#     Given an image and a list of labels, return the label 
-#     with the highest similarity according to CLIP.
-#     """
-#     # Encode both the text labels and the image
-#     inputs = processor(text=labels, images=image, return_tensors="pt", padding=True).to(device)
-#     outputs = model(**inputs)
-
-#     # Compare embeddings: logits_per_image gives similarity
-#     logits = outputs.logits_per_image
-#     probs = logits.softmax(dim=1)
-    
-#     # Pick the label with highest probability
-#     best_idx = probs.argmax().item()
-#     return labels[best_idx]
-
-# # -------------------------------------------------------
-# # Main function: tag_closet_item
-# # -------------------------------------------------------
-# def tag_closet_item(image_path: str) -> dict:
-#     """
-#     Tag a clothing item image with:
-#     - item type (shirt, shoes, etc.)
-#     - color
-#     - indoor/outdoor
-#     - formality (formal/casual)
-#     - gender style (men’s/women’s/unisex)
-
-#     Returns a structured JSON-like dictionary.
-#     """
-#     try:
-#         # Load image in RGB mode
-#         image = Image.open(image_path).convert("RGB")
-        
-#         # Perceptual hash for deduplication / ID
-#         phash = str(imagehash.phash(image))
-
-#         # Run CLIP classification for each attribute
-#         item_type = classify(image, ITEM_LABELS).capitalize()
-#         color = classify(image, COLOR_LABELS).capitalize()
-
-#         # Special case: shoes are always "Outdoor"
-#         if item_type.lower() == "shoes":
-#             indoor_outdoor = "Outdoor"
-#         else:
-#             indoor_outdoor = classify(image, LOCATION_LABELS)
-
-#         formality = classify(image, FORMALITY_LABELS)
-#         gender = classify(image, GENDER_LABELS)
-
-#         # Return a normalized record
-#         return {
-#             "image_id": phash,
-#             "item_type": item_type,
-#             "color": color,
-#             "indoor_outdoor": indoor_outdoor,
-#             "formality": formality,
-#             "gender": gender,
-#             "path": image_path,
-#             "folder": "Closet"
-#         }
-
-#     except Exception as e:
-#         # Gracefully handle errors (eg. unreadable image)
-#         return {"error": str(e)}
-
 """
 tagging.py — Women's Fashion Tagger
-Uses CLIP to classify clothing items with women-specific labels.
+Zero-shot tagging with OpenAI CLIP (ViT-B/32): the image and a list of text
+labels are embedded in the same space and the best-matching label wins.
+
+Note: this is the generic `openai/clip-vit-base-patch32` checkpoint, not
+FashionCLIP and not fine-tuned on fashion data. No model is trained here.
 """
 
-import os
-import json
+from functools import lru_cache
+
 from PIL import Image
 import imagehash
-import torch
-from transformers import CLIPProcessor, CLIPModel
 
-# -------------------------------------------------------
-# Device setup
-# -------------------------------------------------------
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+CLIP_MODEL_ID = "openai/clip-vit-base-patch32"
 
-# -------------------------------------------------------
-# Load CLIP model
-# -------------------------------------------------------
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
+
+@lru_cache(maxsize=1)
+def get_clip():
+    """Load CLIP once per process (lazily, so importing this module is cheap)."""
+    import torch
+    from transformers import CLIPModel, CLIPProcessor
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    processor = CLIPProcessor.from_pretrained(CLIP_MODEL_ID)
+    model = CLIPModel.from_pretrained(CLIP_MODEL_ID).to(device).eval()
+    return processor, model, device
 
 # -------------------------------------------------------
 # Women's Label Sets
@@ -207,19 +98,46 @@ PERSONA_MAP = {
 # -------------------------------------------------------
 # Helper: classify
 # -------------------------------------------------------
-def classify(image, labels):
-    """Return label with highest CLIP similarity."""
+def classify_with_confidence(image, labels):
+    """Return (best_label, softmax_probability) for the CLIP zero-shot match."""
+    import torch
+
+    processor, model, device = get_clip()
     inputs = processor(
         text=labels,
         images=image,
         return_tensors="pt",
         padding=True
     ).to(device)
-    outputs = model(**inputs)
-    logits = outputs.logits_per_image
-    probs = logits.softmax(dim=1)
-    best_idx = probs.argmax().item()
-    return labels[best_idx]
+    with torch.no_grad():
+        probs = model(**inputs).logits_per_image.softmax(dim=1)[0]
+    best_idx = int(probs.argmax().item())
+    return labels[best_idx], float(probs[best_idx].item())
+
+
+def classify(image, labels):
+    """Return label with highest CLIP similarity."""
+    return classify_with_confidence(image, labels)[0]
+
+
+# Prompts used to detect what kind of garment was uploaded (zero-shot)
+CATEGORY_LABELS = {
+    "tops":        "a women's top, blouse, shirt, crop top, tank top or sweater",
+    "bottoms":     "women's jeans, pants, trousers, shorts, leggings or skirt",
+    "dresses":     "a women's dress, jumpsuit, maxi dress or mini dress",
+    "outerwear":   "a women's jacket, coat, blazer or cardigan",
+    "shoes":       "women's shoes, heels, sneakers, boots or sandals",
+    "bags":        "a women's handbag, tote bag, clutch or purse",
+    "accessories": "women's jewellery, earrings, necklace, sunglasses or scarf",
+}
+
+
+def detect_garment_type(image):
+    """Zero-shot CLIP: which garment category was uploaded? -> (category, confidence)."""
+    keys = list(CATEGORY_LABELS.keys())
+    label, conf = classify_with_confidence(image, list(CATEGORY_LABELS.values()))
+    best_cat = keys[list(CATEGORY_LABELS.values()).index(label)]
+    return best_cat, conf
 
 # -------------------------------------------------------
 # Main: tag_closet_item

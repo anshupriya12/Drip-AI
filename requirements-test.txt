@@ -1,0 +1,10 @@
+# Lightweight dependencies for the unit tests (no torch / transformers needed).
+pytest
+Pillow
+imagehash
+numpy
+pymongo[srv]>=4.6.0
+certifi
+python-dotenv
+langchain-core
+streamlit

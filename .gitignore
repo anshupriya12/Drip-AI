@@ -22,3 +22,10 @@ __pycache__/
 
 # Environment files
 .env
+
+# Secrets / local config (keep .env.example, ignore everything else)
+.env.*
+!.env.example
+.streamlit/secrets.toml
+.venv/
+.pytest_cache/

@@ -1,12 +1,24 @@
 """
 Fixed download script using Pixabay free API
 """
-import os, time, requests
+import os
+import sys
+import time
+
+import requests
 from pathlib import Path
 from PIL import Image
 from io import BytesIO
 
-PIXABAY_API_KEY = "REDACTED_PIXABAY_KEY"
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:  # python-dotenv is optional for this script
+    pass
+
+# Read the key from the environment (never hard-code it):  PIXABAY_API_KEY=...
+PIXABAY_API_KEY = os.environ.get("PIXABAY_API_KEY", "").strip()
+
 SAVE_DIR = Path("Closet_Images")
 SAVE_DIR.mkdir(exist_ok=True)
 
@@ -29,7 +41,7 @@ def get_urls(query, count):
     try:
         r = requests.get("https://pixabay.com/api/", params={"key": PIXABAY_API_KEY, "q": query, "image_type": "photo", "per_page": count, "safesearch": "true", "orientation": "vertical"}, timeout=10)
         return [h["webformatURL"] for h in r.json().get("hits", [])]
-    except:
+    except (requests.RequestException, ValueError):
         return []
 
 def save_img(url, path):
@@ -39,17 +51,16 @@ def save_img(url, path):
             img = Image.open(BytesIO(r.content)).convert("RGB").resize((400, 500), Image.LANCZOS)
             img.save(path, "JPEG", quality=90)
             return True
-    except:
+    except (requests.RequestException, OSError):
         pass
     return False
 
 def main():
-    if PIXABAY_API_KEY == "YOUR_PIXABAY_API_KEY":
-        print("❌ Set your Pixabay API key first!")
-        print("   1. Go to: https://pixabay.com/api/docs/")
-        print("   2. Sign up free")
-        print("   3. Replace YOUR_PIXABAY_API_KEY in this script")
-        return
+    if not PIXABAY_API_KEY:
+        print("❌ PIXABAY_API_KEY is not set!")
+        print("   1. Go to: https://pixabay.com/api/docs/ and sign up (free)")
+        print("   2. Add PIXABAY_API_KEY=<your key> to your .env file (see .env.example)")
+        sys.exit(1)
 
     total = 0
     for cat, cfg in CATEGORIES.items():
